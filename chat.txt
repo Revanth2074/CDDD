@@ -1,0 +1,121 @@
+I'll help you integrate your Docker Flask application with Jenkins. First, let's create a Jenkinsfile for your CI/CD pipeline:
+
+```groovy:c:\Users\saire\Downloads\CDDD\CDDD\Jenkinsfile
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_IMAGE = 'chat-sentiment-analyzer'
+        DOCKER_TAG = 'latest'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    bat "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} ."
+                }
+            }
+        }
+
+        stage('Test') {
+            steps {
+                script {
+                    // Add your test commands here
+                    bat "echo Running tests..."
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                script {
+                    bat "docker stop ${DOCKER_IMAGE} || true"
+                    bat "docker rm ${DOCKER_IMAGE} || true"
+                    bat "docker run -d -p 5000:5000 --name ${DOCKER_IMAGE} -v %CD%/uploads:/app/uploads ${DOCKER_IMAGE}:${DOCKER_TAG}"
+                }
+            }
+        }
+    }
+
+    post {
+        failure {
+            // Cleanup on failure
+            bat "docker stop ${DOCKER_IMAGE} || true"
+            bat "docker rm ${DOCKER_IMAGE} || true"
+        }
+    }
+}
+```
+
+To set up Jenkins integration:
+
+1. Install Jenkins on your system if not already installed.
+
+2. Install required Jenkins plugins:
+   - Docker Pipeline
+   - Docker plugin
+   - Git plugin
+
+3. Create a new Jenkins Pipeline:
+```bash
+1. Open Jenkins dashboard
+2. Click "New Item"
+3. Enter a name (e.g., "chat-sentiment-analyzer")
+4. Select "Pipeline"
+5. Click "OK"
+```
+
+4. Configure the pipeline:
+```bash
+1. In the pipeline configuration:
+2. Under "Pipeline", select "Pipeline script from SCM"
+3. Select "Git" as SCM
+4. Enter your repository URL
+5. Set the branch to */main (or your default branch)
+6. Set "Script Path" to "Jenkinsfile"
+7. Click "Save"
+```
+
+5. Additional Jenkins security settings:
+```bash
+1. Go to "Manage Jenkins" > "Configure Global Security"
+2. Under "CSRF Protection", enable "Enable proxy compatibility"
+3. Save the changes
+```
+
+6. Configure Docker permissions:
+```bash
+1. Ensure Jenkins service account has Docker permissions
+2. Add Jenkins user to Docker group
+3. Restart Jenkins service
+```
+
+The pipeline will:
+1. Check out your code
+2. Build the Docker image
+3. Run tests (you can add specific test commands)
+4. Deploy the application
+5. Handle failures with cleanup
+
+To trigger the pipeline:
+```bash
+1. Go to your pipeline in Jenkins
+2. Click "Build Now"
+```
+
+For automatic builds, you can:
+1. Set up webhooks in your repository
+2. Configure build triggers in Jenkins
+
+Remember to:
+- Adjust the port numbers if needed
+- Update volume paths according to your environment
+- Add specific test commands in the Test stage
+- Configure proper security measures for production deployment

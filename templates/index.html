@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Analysis Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .sentiment-card {
+            transition: transform 0.2s;
+        }
+        .sentiment-card:hover {
+            transform: translateY(-5px);
+        }
+        .emoji-item {
+            font-size: 1.5rem;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container py-5">
+        <h1 class="text-center mb-5">Chat Sentiment Analysis</h1>
+        
+        <!-- File Upload Form -->
+        <div class="card shadow-sm mb-5">
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data" class="text-center">
+                    <div class="mb-3">
+                        <label for="file" class="form-label">Upload your chat file</label>
+                        <input type="file" class="form-control" id="file" name="file" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Analyze Chat</button>
+                </form>
+            </div>
+        </div>
+
+        {% if analysis %}
+        <div class="row g-4">
+            <!-- Overall Sentiment -->
+            <div class="col-md-6">
+                <div class="card shadow-sm sentiment-card h-100">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Overall Sentiment</h5>
+                        <div class="display-4 mb-3">
+                            {% if analysis.overall_sentiment == "Positive" %}
+                                <i class="fas fa-smile text-success"></i>
+                            {% elif analysis.overall_sentiment == "Negative" %}
+                                <i class="fas fa-frown text-danger"></i>
+                            {% else %}
+                                <i class="fas fa-meh text-warning"></i>
+                            {% endif %}
+                        </div>
+                        <p class="h4">{{ analysis.overall_sentiment }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sentiment Scores -->
+            <div class="col-md-6">
+                <div class="card shadow-sm sentiment-card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title text-center">Sentiment Scores</h5>
+                        <div class="progress mb-3" style="height: 25px;">
+                            <div class="progress-bar bg-success" style="width: {{ (analysis.positive_score * 100) }}%">
+                                Positive: {{ "%.2f"|format(analysis.positive_score) }}
+                            </div>
+                        </div>
+                        <div class="progress mb-3" style="height: 25px;">
+                            <div class="progress-bar bg-danger" style="width: {{ (analysis.negative_score * 100) }}%">
+                                Negative: {{ "%.2f"|format(analysis.negative_score) }}
+                            </div>
+                        </div>
+                        <div class="progress" style="height: 25px;">
+                            <div class="progress-bar bg-warning" style="width: {{ (analysis.neutral_score * 100) }}%">
+                                Neutral: {{ "%.2f"|format(analysis.neutral_score) }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Emojis -->
+            <div class="col-12">
+                <div class="card shadow-sm sentiment-card">
+                    <div class="card-body">
+                        <h5 class="card-title text-center">Top Emojis Used</h5>
+                        <div class="d-flex flex-wrap justify-content-center">
+                            {% for emoji, count in analysis.top_emojis %}
+                            <div class="text-center m-2">
+                                <div class="emoji-item">{{ emoji }}</div>
+                                <small class="text-muted">{{ count }} times</small>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
